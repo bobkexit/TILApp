@@ -34,5 +34,6 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     // 4
     migrations.add(model: User.self, database: .psql)
     migrations.add(model: Acronym.self, database: .psql)
+    migrations.add(model: Category.self, database: .psql)
     services.register(migrations)
 }
