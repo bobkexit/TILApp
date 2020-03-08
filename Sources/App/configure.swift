@@ -20,11 +20,25 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     // Register the configured SQLite database to the database config.
     // Configure a database
     var databases = DatabasesConfig()
+    
+    let databaseName: String
+    let databasePort: Int
+    
+    if let testPort = Environment.get("DATABASE_PORT") {
+        databaseName = "vapor-test"
+        databasePort = Int(testPort) ?? 5433
+    } else {
+        databaseName = "vapor"
+        databasePort = 5432
+    }
+    let hostname = Environment.get("DATABASE_HOSTNAME") ?? "localhost"
+    
     // 3
     let databaseConfig = PostgreSQLDatabaseConfig(
-        hostname: "localhost",
+        hostname: hostname,
+        port: databasePort,
         username: "vapor",
-        database: "vapor",
+        database: databaseName,
         password: "password"
     )
     let database = PostgreSQLDatabase(config: databaseConfig)
@@ -37,4 +51,8 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     migrations.add(model: Category.self, database: .psql)
     migrations.add(model: AcronymCategoryPivot.self, database: .psql)
     services.register(migrations)
+    
+    var commandConfig = CommandConfig.default()
+    commandConfig.useFluentCommands()
+    services.register(commandConfig)
 }
