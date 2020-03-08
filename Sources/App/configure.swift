@@ -24,17 +24,18 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     let databaseName: String
     let databasePort: Int
     
-    if (env == .testing) {
+    if let testPort = Environment.get("DATABASE_PORT") {
         databaseName = "vapor-test"
-        databasePort = 5433
+        databasePort = Int(testPort) ?? 5433
     } else {
         databaseName = "vapor"
         databasePort = 5432
     }
+    let hostname = Environment.get("DATABASE_HOSTNAME") ?? "localhost"
     
     // 3
     let databaseConfig = PostgreSQLDatabaseConfig(
-        hostname: "localhost",
+        hostname: hostname,
         port: databasePort,
         username: "vapor",
         database: databaseName,
