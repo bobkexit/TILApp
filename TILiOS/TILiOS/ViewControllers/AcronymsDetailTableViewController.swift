@@ -69,11 +69,39 @@ class AcronymDetailTableViewController: UITableViewController {
       }
       destination.selectedUser = user
       destination.acronym = acronym
+    } else if segue.identifier == "AddToCategorySegue" {
+      guard let destination = segue.destination as? AddToCategoryTableViewController else {
+        return
+      }
+      
+      destination.acronym = acronym
+      destination.selectedCategories = categories
     }
   }
 
   func getAcronymData() {
-
+    guard let id = acronym?.id else { return }
+    
+    let acronymDetailRequester = AcronymRequest(acronymID: id)
+    acronymDetailRequester.getUser { [weak self] result in
+      switch result {
+      case .success(let user):
+        self?.user = user
+      case .failure:
+        let message = "There was an error getting the acronym’s user"
+        ErrorPresenter.showError(message: message, on: self)
+      }
+    }
+    
+    acronymDetailRequester.getCategories { [weak self] result in
+      switch result {
+      case .success(let categories):
+        self?.categories = categories
+      case .failure:
+        let message = "There was an error getting the acronym’s categories"
+        ErrorPresenter.showError(message: message, on: self)
+      }
+    }
   }
 
   func updateAcronymView() {
@@ -84,7 +112,11 @@ class AcronymDetailTableViewController: UITableViewController {
 
   // MARK: - IBActions
   @IBAction func updateAcronymDetails(_ segue: UIStoryboardSegue) {
-
+    guard let controller = segue.source as? CreateAcronymTableViewController else {
+      return
+    }
+    user = controller.selectedUser
+    acronym = controller.acronym
   }
 }
 
@@ -92,7 +124,7 @@ class AcronymDetailTableViewController: UITableViewController {
 extension AcronymDetailTableViewController {
 
   override func numberOfSections(in tableView: UITableView) -> Int {
-    return 4
+    return 5
   }
 
   override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -110,9 +142,20 @@ extension AcronymDetailTableViewController {
       cell.textLabel?.text = user?.name
     case 3:
       cell.textLabel?.text = categories[indexPath.row].name
+    case 4:
+      cell.textLabel?.text = "Add To Category"
     default:
       break
     }
+    
+    if indexPath.section == 4 {
+      cell.selectionStyle = .default
+      cell.isUserInteractionEnabled = true
+    } else {
+      cell.selectionStyle = .none
+      cell.isUserInteractionEnabled = false
+    }
+    
     return cell
   }
 
