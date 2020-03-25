@@ -49,10 +49,10 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     services.register(databases)
     var migrations = MigrationConfig()
     // 4
-    migrations.add(model: User.self, database: .psql)
-    migrations.add(model: Acronym.self, database: .psql)
-    migrations.add(model: Category.self, database: .psql)
-    migrations.add(model: AcronymCategoryPivot.self, database: .psql)
+    migrations.add(model: User.self, database: DatabaseIdentifier<User.Database>.psql)
+    migrations.add(model: Acronym.self, database: DatabaseIdentifier<Acronym.Database>.psql)
+    migrations.add(model: Category.self, database: DatabaseIdentifier<Category.Database>.psql)
+    migrations.add(model: AcronymCategoryPivot.self, database: DatabaseIdentifier<AcronymCategoryPivot.Database>.psql)
     services.register(migrations)
     
     var commandConfig = CommandConfig.default()
