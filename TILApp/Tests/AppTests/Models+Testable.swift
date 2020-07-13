@@ -1,13 +1,23 @@
 @testable import App
 import FluentPostgreSQL
+import Crypto
 
 
 extension User {
     static func create(
         name: String = "Luke",
-        username: String = "lukes",
+        username: String? = nil,
         on connection: PostgreSQLConnection) throws -> User {
-        let user = User(name: name, username: username)
+        let creatUsername: String
+        
+        if let suppliedUsername = username {
+            creatUsername = suppliedUsername
+        } else {
+            creatUsername = UUID().uuidString
+        }
+        
+        let password = try BCrypt.hash("password")
+        let user = User(name: name, username: creatUsername, password: password)
         return try user.save(on: connection).wait()
     }
 }

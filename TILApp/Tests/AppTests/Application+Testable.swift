@@ -1,5 +1,6 @@
 import Vapor
-import App
+@testable import App
+import Authentication
 import FluentPostgreSQL
 
 extension Application {
@@ -31,8 +32,35 @@ extension Application {
         to path: String,
         method: HTTPMethod,
         headers: HTTPHeaders = .init(),
-        body: T? = nil
+        body: T? = nil,
+        loggedInRequest: Bool = false,
+        loggedInUser: User? = nil
     ) throws -> Response where T: Content {
+        
+        var headers = headers
+        
+        if (loggedInRequest || loggedInUser != nil) {
+            let username: String
+            
+            if let user = loggedInUser {
+                username = user.username
+            } else {
+                username = "admin"
+            }
+            
+            let credentals = BasicAuthorization(username: username, password: "password")
+            
+            var tokenHeaders = HTTPHeaders()
+            tokenHeaders.basicAuthorization = credentals
+            
+            let tokenResponse = try self.sendRequest(to: "/api/users/login",
+                                                     method: .POST,
+                                                     headers: tokenHeaders)
+            
+            let token = try tokenResponse.content.syncDecode(Token.self)
+            
+            headers.add(name: .authorization, value: "Bearer \(token.token)")
+        }
         
         let responder = try self.make(Responder.self)
         let request = HTTPRequest(method: method, url: URL(string: path)!, headers: headers)

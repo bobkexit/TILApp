@@ -68,3 +68,7 @@ extension User: BasicAuthenticatable {
     
     static var passwordKey: PasswordKey = \User.password
 }
+
+extension User: TokenAuthenticatable {
+    typealias TokenType = Token
+}
