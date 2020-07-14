@@ -28,66 +28,36 @@
 
 import UIKit
 
-class SelectUserTableViewController: UITableViewController {
-  
-  // MARK: - Properties
-  var users: [User] = []
-  
-  var selectedUser: User!
-  
-  // MARK: - View Life Cycle
-  override func viewDidLoad() {
-    super.viewDidLoad()
-    loadData()
-  }
-  
-  func loadData() {
-    let usersRequest = ResourceRequest<User>(resourcePath: "users")
-    
-    usersRequest.getAll { [weak self] result in
-      switch result {
-      case .failure:
-        let message = "There was an error getting the users"
-        ErrorPresenter.showError(message: message, on: self) { _ in
-          self?.navigationController?.popViewController(animated: true)
-        }
-      case .success(let users):
-        self?.users = users
-        DispatchQueue.main.async {
-          self?.tableView.reloadData()
-        }
-      }
-    }
-  }
-  
-  // MARK: - Navigation
-  override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-    if segue.identifier == "UnwindSelectUserSegue" {
-      guard let cell = sender as? UITableViewCell,
-        let indexPath = tableView.indexPath(for: cell) else {
-        return
-      }
-      selectedUser = users[indexPath.row]
-    }
-  }
-}
+class LoginTableViewController: UITableViewController {
 
-// MARK: - UITableViewDataSource
-extension SelectUserTableViewController {
-  
-  override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    return users.count
-  }
-  
-  override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let user = users[indexPath.row]
-    let cell = tableView.dequeueReusableCell(withIdentifier: "SelectUserCell", for: indexPath)
-    cell.textLabel?.text = user.name
-    if user.name == selectedUser.name {
-      cell.accessoryType = .checkmark
-    } else {
-      cell.accessoryType = .none
+  // MARK: - Properties
+
+  @IBOutlet weak var usernameTextField: UITextField!
+  @IBOutlet weak var passwordTextField: UITextField!
+
+  @IBAction func loginTapped(_ sender: UIBarButtonItem) {
+    guard let username = usernameTextField.text, !username.isEmpty else {
+      ErrorPresenter.showError(message: "Please enter your username", on: self)
+      return
     }
-    return cell
+
+    guard let password = passwordTextField.text, !password.isEmpty else {
+      ErrorPresenter.showError(message: "Please enter your password", on: self)
+      return
+    }
+    
+    Auth().login(username: username, password: password) { result in
+      switch result {
+      case .success:
+        DispatchQueue.main.async {
+          let appDelegate = UIApplication.shared.delegate as? AppDelegate
+          appDelegate?.window?.rootViewController = UIStoryboard(name: "Main", bundle: Bundle.main).instantiateInitialViewController()
+        }
+      case .failure:
+        let message = "Could not login. Check your credentials and try again"
+        ErrorPresenter.showError(message: message, on: self)
+      }
+      
+    }
   }
 }

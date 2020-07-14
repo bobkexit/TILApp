@@ -76,21 +76,27 @@ extension Application {
     func sendRequest(
         to path: String,
         method: HTTPMethod,
-        headers: HTTPHeaders = .init()
+        headers: HTTPHeaders = .init(),
+        loggedInRequest: Bool = false,
+        loggedInUser: User? = nil
     ) throws -> Response  {
-        
         let emptyContent: EmptyContent? = nil
-        return try sendRequest(to: path, method: method, headers: headers, body: emptyContent)
+        return try sendRequest(to: path, method: method,
+                               headers: headers, body: emptyContent,
+                               loggedInRequest: loggedInRequest, loggedInUser: loggedInUser)
     }
     
     func sendRequest<T>(
         to path: String,
         method: HTTPMethod,
         headers: HTTPHeaders = .init(),
-        data: T
+        data: T,
+        loggedInRequest: Bool = false,
+        loggedInUser: User? = nil
     ) throws where T: Content {
-        
-        _ = try sendRequest(to: path, method: method, headers: headers, body: data)
+        _ = try sendRequest(to: path, method: method,
+                            headers: headers, body: data,
+                            loggedInRequest: loggedInRequest, loggedInUser: loggedInUser)
     }
     
     
@@ -99,9 +105,13 @@ extension Application {
         method: HTTPMethod = .GET,
         headers: HTTPHeaders = .init(),
         data: C? = nil,
-        decodeTo type: T.Type
+        decodeTo type: T.Type,
+        loggedInRequest: Bool = false,
+        loggedInUser: User? = nil
     ) throws -> T {
-        let response = try self.sendRequest(to: path, method: method, headers: headers, body: data)
+        let response = try self.sendRequest(to: path, method: method,
+                                            headers: headers, body: data,
+                                            loggedInRequest: loggedInRequest, loggedInUser: loggedInUser)
         return try response.content.decode(type).wait()
     }
     
@@ -109,7 +119,9 @@ extension Application {
         to path: String,
         method: HTTPMethod = .GET,
         headers: HTTPHeaders = .init(),
-        decodeTo type: T.Type
+        decodeTo type: T.Type,
+        loggedInRequest: Bool = false,
+        loggedInUser: User? = nil
     ) throws -> T  {
         let emptyContent: EmptyContent? = nil
         return try self.getResponse(
@@ -117,7 +129,9 @@ extension Application {
             method: method,
             headers: headers,
             data: emptyContent,
-            decodeTo: type)
+            decodeTo: type,
+            loggedInRequest: loggedInRequest,
+            loggedInUser: loggedInUser)
     }
     
     
